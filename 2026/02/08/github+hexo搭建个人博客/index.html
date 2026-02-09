@@ -167,27 +167,27 @@
 <ul>
 <li><strong>作用</strong>：Hexo 是基于 Node.js 的博客框架，需要它来运行。</li>
 <li><strong>步骤</strong>：访问 <a target="_blank" rel="noopener" href="https://nodejs.org/">Node.js 官网</a>下载 LTS（长期支持）版本并安装。安装时一路默认设置即可。</li>
-<li><strong>检查步骤</strong>：安装完成后，打开命令提示符或 PowerShell，输入以下命令，如果显示版本号则说明安装成功。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure></li>
+<li><strong>检查步骤</strong>：安装完成后，打开命令提示符或 PowerShell，输入以下命令，如果显示版本号则说明安装成功。<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
 <li><p><strong>安装 Git</strong></p>
 <ul>
 <li><strong>作用</strong>：用于版本控制以及将你本地写好的博客代码部署到 GitHub。</li>
 <li><strong>步骤</strong>：访问 <a target="_blank" rel="noopener" href="https://git-scm.com/">Git 官网</a>下载并安装，使用默认选项即可。</li>
-<li><strong>检查步骤</strong>：在命令行中输入以下命令，显示版本号即成功。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git --version</span><br></pre></td></tr></table></figure></li>
+<li><strong>检查步骤</strong>：在命令行中输入以下命令，显示版本号即成功。<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git --version</span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
 </ol>
 <h3 id="🚀-创建本地博客并预览"><a href="#🚀-创建本地博客并预览" class="headerlink" title="🚀 创建本地博客并预览"></a>🚀 创建本地博客并预览</h3><p>环境准备好后，我们就可以在本地创建并预览博客了。</p>
 <ol>
 <li><p><strong>安装 Hexo CLI</strong>：在命令行中执行以下命令，全局安装 Hexo 命令行工具。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>初始化博客项目</strong>：为你博客创建一个文件夹并初始化。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个名为 my-blog 的文件夹并进入</span></span><br><span class="line">hexo init my-blog</span><br><span class="line"><span class="built_in">cd</span> my-blog</span><br><span class="line"><span class="comment"># 安装必要的依赖包</span></span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建一个名为 my-blog 的文件夹并进入</span></span><br><span class="line">hexo init my-blog</span><br><span class="line"><span class="built_in">cd</span> my-blog</span><br><span class="line"><span class="comment"># 安装必要的依赖包</span></span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>本地预览</strong>：完成初始化后，执行以下命令启动本地服务器。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo server  <span class="comment"># 可以简写为 hexo s</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo server  <span class="comment"># 可以简写为 hexo s</span></span><br></pre></td></tr></table></figure>
 <p>接着在浏览器中打开 <code>http://localhost:4000</code>，你就能看到你的博客雏形了！按 <code>Ctrl+C</code> 可以停止服务器。</p>
 </li>
 </ol>
@@ -239,9 +239,9 @@
 </li>
 <li><p><strong>部署到 GitHub</strong></p>
 <ul>
-<li><strong>安装部署插件</strong>：在你的博客目录（<code>my-blog</code>）下运行：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure></li>
-<li><strong>修改配置文件</strong>：用文本编辑器打开博客根目录下的 <code>_config.yml</code> 文件，滚动到最底部，找到 <code>deploy</code> 部分，修改为如下格式（<strong>注意冒号后必须有一个空格</strong>）：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">git@github.com:你的用户名/你的用户名.github.io.git</span>  <span class="comment"># 这里使用SSH地址</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span>  <span class="comment"># 或 master，根据你的仓库默认分支名而定</span></span><br></pre></td></tr></table></figure></li>
-<li><strong>生成并部署</strong>：在命令行中执行以下命令，即可完成部署。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo clean   <span class="comment"># 清理缓存</span></span><br><span class="line">hexo generate  <span class="comment"># 生成静态文件，可简写为 hexo g</span></span><br><span class="line">hexo deploy   <span class="comment"># 部署到GitHub，可简写为 hexo d</span></span><br></pre></td></tr></table></figure>
+<li><strong>安装部署插件</strong>：在你的博客目录（<code>my-blog</code>）下运行：<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure></li>
+<li><strong>修改配置文件</strong>：用文本编辑器打开博客根目录下的 <code>_config.yml</code> 文件，滚动到最底部，找到 <code>deploy</code> 部分，修改为如下格式（<strong>注意冒号后必须有一个空格</strong>）：<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">git@github.com:你的用户名/你的用户名.github.io.git</span>  <span class="comment"># 这里使用SSH地址</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span>  <span class="comment"># 或 master，根据你的仓库默认分支名而定</span></span><br></pre></td></tr></table></figure></li>
+<li><strong>生成并部署</strong>：在命令行中执行以下命令，即可完成部署。<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean   <span class="comment"># 清理缓存</span></span><br><span class="line">hexo generate  <span class="comment"># 生成静态文件，可简写为 hexo g</span></span><br><span class="line">hexo deploy   <span class="comment"># 部署到GitHub，可简写为 hexo d</span></span><br></pre></td></tr></table></figure>
 稍等片刻，你就可以通过 <code>https://你的用户名.github.io</code> 访问你的线上博客了！</li>
 </ul>
 </li>
@@ -275,15 +275,15 @@
 <p>1. </p>
 <p>   <strong>配置 Git 用户信息</strong>：这是解决当前问题的关键。</p>
 <p>   打开命令行（CMD 或 PowerShell），依次输入以下两条命令并执行：</p>
-   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.email &quot;3518872137@qq.com&quot;</span><br><span class="line">git config --global user.name &quot;Sonh66&quot;</span><br></pre></td></tr></table></figure>
+   <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global user.email &quot;3518872137@qq.com&quot;</span><br><span class="line">git config --global user.name &quot;Sonh66&quot;</span><br></pre></td></tr></table></figure>
 
 <p>2. </p>
 <p>   <strong>（可选）解决换行符警告</strong>：为了避免每次部署都看到大量警告，可以执行：</p>
-   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global core.autocrlf false</span><br></pre></td></tr></table></figure>
+   <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global core.autocrlf false</span><br></pre></td></tr></table></figure>
 
 <p>3. </p>
 <p>   <strong>重新部署</strong>：完成上述配置后，回到你的 Hexo 博客目录（<code>E:\Myblog\myblogs</code>），再次执行部署命令：</p>
-   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo clean &amp;&amp; hexo deploy</span><br></pre></td></tr></table></figure>
+   <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo clean &amp;&amp; hexo deploy</span><br></pre></td></tr></table></figure>
 
 <h3 id="💡-预防与检查"><a href="#💡-预防与检查" class="headerlink" title="💡 预防与检查"></a>💡 预防与检查</h3><p>- </p>
 <p>  <strong>验证配置</strong>：你可以通过运行 <code>git config --global --list</code>来检查刚才的全局配置是否已生效。</p>
