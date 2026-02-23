@@ -1,0 +1,232 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>图片分析 | Sonh's Blog</title><meta name="author" content="Sonh"><meta name="copyright" content="Sonh"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="引言图片题在Misc中具有极其重要和基础性的地位，可以说是Misc的“半壁江山”和入门必修课。图片题是检验选手信息搜集、工具使用和跨领域联想能力的试金石。熟练掌握图片题的相关技术，是CTF参赛者，尤其是Misc方向选手的一项核心能力。接下来就让我来分享一下传统图片题的做题基本思路（传统！传统！新题的出题鬼知道他耍什么花样）。 一把梭很多基础的图片题会把flag藏在浅显的数据层，这时候只要把图片丢给">
+<meta property="og:type" content="article">
+<meta property="og:title" content="图片分析">
+<meta property="og:url" content="https://sonh66.github.io/2026/02/23/%E5%9B%BE%E7%89%87%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Sonh&#39;s Blog">
+<meta property="og:description" content="引言图片题在Misc中具有极其重要和基础性的地位，可以说是Misc的“半壁江山”和入门必修课。图片题是检验选手信息搜集、工具使用和跨领域联想能力的试金石。熟练掌握图片题的相关技术，是CTF参赛者，尤其是Misc方向选手的一项核心能力。接下来就让我来分享一下传统图片题的做题基本思路（传统！传统！新题的出题鬼知道他耍什么花样）。 一把梭很多基础的图片题会把flag藏在浅显的数据层，这时候只要把图片丢给">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://sonh66.github.io/img/%E5%B0%81%E9%9D%A23.png">
+<meta property="article:published_time" content="2026-02-22T17:27:00.000Z">
+<meta property="article:modified_time" content="2026-02-23T13:07:23.574Z">
+<meta property="article:author" content="Sonh">
+<meta property="article:tag" content="MISC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://sonh66.github.io/img/%E5%B0%81%E9%9D%A23.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "图片分析",
+  "url": "https://sonh66.github.io/2026/02/23/%E5%9B%BE%E7%89%87%E5%88%86%E6%9E%90/",
+  "image": "https://sonh66.github.io/img/%E5%B0%81%E9%9D%A23.png",
+  "datePublished": "2026-02-22T17:27:00.000Z",
+  "dateModified": "2026-02-23T13:07:23.574Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Sonh",
+      "url": "https://sonh66.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://sonh66.github.io/2026/02/23/%E5%9B%BE%E7%89%87%E5%88%86%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '图片分析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.styl"><meta name="generator" content="Hexo 8.1.1"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/bg.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Sonh's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">图片分析</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">图片分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-22T17:27:00.000Z" title="发表于 2026-02-23 01:27:00">2026-02-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-23T13:07:23.574Z" title="更新于 2026-02-23 21:07:23">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><div class="top-img gist" style="background-image: url(/false)"></div><article class="post-content" id="article-container"><h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>图片题在Misc中具有极其重要和基础性的地位，可以说是Misc的“半壁江山”和入门必修课。图片题是检验选手信息搜集、工具使用和跨领域联想能力的试金石。熟练掌握图片题的相关技术，是CTF参赛者，尤其是Misc方向选手的一项核心能力。接下来就让我来分享一下传统图片题的做题基本思路（传统！传统！新题的出题鬼知道他耍什么花样）。</p>
+<h1 id="一把梭"><a href="#一把梭" class="headerlink" title="一把梭"></a>一把梭</h1><p>很多基础的图片题会把flag藏在浅显的数据层，这时候只要把图片丢给随波逐流就可以非常容易地拿到flag</p>
+<p>例如：<a target="_blank" rel="noopener" href="https://ctf.show/challenges#misc5-1137">ctf.show</a>这道题只需要把图片放进一把梭工具，它就会自动检索出flag</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260223201850635-1771849132194-1.png" alt="image-20260223201850635"></p>
+<h1 id="010Editor"><a href="#010Editor" class="headerlink" title="010Editor"></a>010Editor</h1><p>同样是上一道题，我们也可以用16进制工具打开手动检索flag相关信息</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260223202044622-1771849246343-3.png" alt="image-20260223202044622"></p>
+<p>不难看出，在文件的末尾，我们看见了要找到的flag</p>
+<h1 id="Binwalk-foremost"><a href="#Binwalk-foremost" class="headerlink" title="Binwalk&amp;foremost"></a>Binwalk&amp;foremost</h1><h2 id="binwalk"><a href="#binwalk" class="headerlink" title="binwalk"></a>binwalk</h2><p>题目链接：<a target="_blank" rel="noopener" href="https://ctf.show/challenges#misc8-1140">ctf.show</a></p>
+<p>拿到附件并经过以上两个步骤后均没有发现flag，可以使用binwalk对图片进行分析，看图片是否含有附加文件</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260223202658774-1771849620696-5.png" alt="image-20260223202658774"></p>
+<p>可以看到图片中还有另外一张png图片，使用<code>binwalk -e</code>尝试提取那张图片</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260223202916924-1771849758617-7.png" alt="image-20260223202916924"></p>
+<p>但是binwalk并没有成功提取到我们所需要的那张png，只是导出来两个.zlib文件。</p>
+<h2 id="foremost"><a href="#foremost" class="headerlink" title="foremost"></a>foremost</h2><p>既然我们知道题目所给图片中确实有另外的图片，但是用binwalk无法提取，那我们不妨尝试用foremost进行提取<img src="/./../imgs/$%7Bfiilename%7D/image-20260223203228598-1771849950112-9.png" alt="image-20260223203228598"></p>
+<p>使用foremost提取时，会生成一个output文件夹，可以看到包含flag的图片已经在里面了，至此我们拿到了flag。</p>
+<p>注：即使没有成功提取，foremost提取也会给你生成output文件夹，里面就只有你的原始图片。</p>
+<h1 id="IDAT块"><a href="#IDAT块" class="headerlink" title="IDAT块"></a>IDAT块</h1><p>IDAT块是PNG图像文件真正的“数据心脏”。它像一座仓库，专门存放经过压缩处理的图像像素核心数据。一个PNG文件可以连续拥有多个IDAT块，它们必须按顺序拼接，才能解压还原出完整的画面。在文件结构里，它紧随描述图像基本信息的IHDR块之后，终结于IEND块之前，构成了“头-身-尾”中不可或缺的“身躯”。</p>
+<p>题目链接：<a target="_blank" rel="noopener" href="https://ctf.show/challenges#misc11-1143">ctf.show</a></p>
+<p>经过以上几步操作后，我们连flag的影子都没有看到，但是根据随波逐流扫描出来的结果，我们发现这张图片有且仅有两个IDAT块，emm……数量不多不少，我们可以试一下删除其中一个IDAT块看看，这时候就得请出我们的TweakPNG了，打开图片，并删除第一个IDAT块。哦豁！flag出来了！</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260223204602591-1771850764047-11.png" alt="image-20260223204602591"></p>
+<p>虽然这题我们很容易就拿到了flag，但有些题目（详见<a target="_blank" rel="noopener" href="https://ctf.show/challenges#misc12-1144">ctf.show</a>）可能会要我们依次删除好多IDAT块，慢慢尝试才能拿到flag</p>
+<h1 id="dd手动分离"><a href="#dd手动分离" class="headerlink" title="dd手动分离"></a>dd手动分离</h1><p>遇到binwalk -e无法成功分离文件时，可能是如下原因</p>
+<table>
+<thead>
+<tr>
+<th>主要原因类别</th>
+<th>具体原因与说明</th>
+<th>解决思路提示</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1. 文件签名&#x2F;魔数被修改或破坏</strong></td>
+<td>出题人故意修改了嵌入文件的文件头（如将 <code>PK</code>改为 <code>PK</code>），导致 binwalk 的签名识别失败。这是 CTF 中常见的反自动化手段。</td>
+<td>使用 <code>binwalk -A</code>或 <code>file</code>、<code>xxd</code>手动分析可疑数据段，尝试根据文件结构手动修复正确的文件头。</td>
+</tr>
+<tr>
+<td><strong>2. 文件被加密或混淆</strong></td>
+<td>嵌入的文件内容被加密、编码（如 Base64、ROT）或进行了异或混淆，使其不具备有效的文件签名。</td>
+<td>先对整体文件或分离出的数据块进行解密或解码操作。常用工具如 <code>cyberchef</code>，或编写 Python 脚本尝试常见密钥。</td>
+</tr>
+<tr>
+<td><strong>3. 嵌套结构或非常见格式</strong></td>
+<td>文件被多次嵌套（如压缩包套压缩包），且使用了不常见的算法或格式，导致 binwalk 的提取插件不支持。</td>
+<td>使用 <code>binwalk -Me</code>尝试递归提取。若失败，则需手动使用 <code>foremost</code>、<code>dd</code>或 <code>010 Editor</code>按分析出的偏移量逐层分离。</td>
+</tr>
+<tr>
+<td><strong>4. 文件系统&#x2F;容器损坏或不完整</strong></td>
+<td>嵌入的文件（如一个压缩包）本身 CRC 校验错误、结构不完整，或被截断，导致无法正常解压。</td>
+<td>尝试使用 <code>7-zip</code>或 <code>zip -FF</code>等工具的修复功能。对于 PNG 等格式，需检查并修复数据块（如 IDAT 的 CRC）。</td>
+</tr>
+<tr>
+<td><strong>5. 工具本身限制或 Bug</strong></td>
+<td>Binwalk 的签名库未包含该文件类型，或特定版本的提取插件存在缺陷。</td>
+<td>更新 binwalk 到最新版。使用替代工具进行签名扫描和提取，如 <code>foremost</code>、<code>dd</code>（手动）、<code>7-zip</code>（直接尝试解压）。</td>
+</tr>
+<tr>
+<td><strong>6. 数据未按标准格式嵌入</strong></td>
+<td>数据被直接附加在文件末尾（如直接附加在 PNG 的 IEND 块之后），没有封装成独立的压缩包格式，因此没有可供识别的签名。</td>
+<td>使用 <code>binwalk --dd=&#39;.*&#39; &lt;文件&gt;</code>暴力切分所有数据段，或直接用 <code>dd</code>、<code>010 Editor</code>从末尾截取数据进行分析。</td>
+</tr>
+</tbody></table>
+<p>这时候我们可以尝试用dd手动分离文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dd if=&lt;输入文件&gt; of=&lt;输出文件&gt; bs=&lt;块大小&gt; skip=&lt;输入块数&gt; seek=&lt;输出块数&gt; count=&lt;块数&gt;</span><br></pre></td></tr></table></figure>
+
+<p>练手题：<a target="_blank" rel="noopener" href="https://ctf.show/challenges#misc14-1146">ctf.show</a></p>
+<p>对于题目给的jpg图片，我们用了前面的所有手段都没有拿到flag，所以尝试一下dd手动分离。</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260223210133933-1771851695196-13.png" alt="image-20260223210133933"></p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260223210219527-1771851740767-15.png" alt="image-20260223210219527"></p>
+<p>分离成功得到flag</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260223210304029-1771851785298-17.png" alt="image-20260223210304029"></p>
+<h1 id="未完待续……"><a href="#未完待续……" class="headerlink" title="未完待续……"></a>未完待续……</h1></article></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Sonh</div><div class="author-info-description">欢迎来到我的成长博客，这里分享一位小白学习CTF的历程</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Sonh66/"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Forget about tomorrow as soon as the sun rises.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E6%8A%8A%E6%A2%AD"><span class="toc-number">2.</span> <span class="toc-text">一把梭</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#010Editor"><span class="toc-number">3.</span> <span class="toc-text">010Editor</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Binwalk-foremost"><span class="toc-number">4.</span> <span class="toc-text">Binwalk&amp;foremost</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#binwalk"><span class="toc-number">4.1.</span> <span class="toc-text">binwalk</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#foremost"><span class="toc-number">4.2.</span> <span class="toc-text">foremost</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#IDAT%E5%9D%97"><span class="toc-number">5.</span> <span class="toc-text">IDAT块</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#dd%E6%89%8B%E5%8A%A8%E5%88%86%E7%A6%BB"><span class="toc-number">6.</span> <span class="toc-text">dd手动分离</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%AA%E5%AE%8C%E5%BE%85%E7%BB%AD%E2%80%A6%E2%80%A6"><span class="toc-number">7.</span> <span class="toc-text">未完待续……</span></a></li></ol></div></div></div></div></main><footer id="footer" style="background-image: url(/img/%E5%B0%81%E9%9D%A21.jpg%20img/%E5%B0%81%E9%9D%A22.jpg%20img/%E5%B0%81%E9%9D%A23.jpg);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Sonh</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="/js/tw_cn.js?v=5.5.4"></script><div class="js-pjax"></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
