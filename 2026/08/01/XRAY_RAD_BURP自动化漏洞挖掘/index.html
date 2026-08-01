@@ -1,0 +1,274 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web | Sonh's Blog</title><meta name="author" content="Sonh"><meta name="copyright" content="Sonh"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Xray 漏洞扫描器工具介绍xray 是一款功能强大的安全评估工具，由多名经验丰富的一线安全从业者呕心打造而成，特性有：  检测速度快：发包速度快；漏洞检测算法效率高。 支持范围广：大至 OWASP Top 10 通用漏洞检测，小至各种 CMS 框架 POC，均可以支持。 代码质量高：编写代码的人员素质高，通过 Code Review、单元测试、集成测试等多层验证来提升代码可靠性。 高级可定制：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web">
+<meta property="og:url" content="https://sonh66.github.io/2026/08/01/XRAY_RAD_BURP%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/index.html">
+<meta property="og:site_name" content="Sonh&#39;s Blog">
+<meta property="og:description" content="Xray 漏洞扫描器工具介绍xray 是一款功能强大的安全评估工具，由多名经验丰富的一线安全从业者呕心打造而成，特性有：  检测速度快：发包速度快；漏洞检测算法效率高。 支持范围广：大至 OWASP Top 10 通用漏洞检测，小至各种 CMS 框架 POC，均可以支持。 代码质量高：编写代码的人员素质高，通过 Code Review、单元测试、集成测试等多层验证来提升代码可靠性。 高级可定制：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://sonh66.github.io/img/%E5%B0%81%E9%9D%A228.png">
+<meta property="article:published_time" content="2026-08-01T12:17:00.000Z">
+<meta property="article:modified_time" content="2026-08-01T12:14:39.014Z">
+<meta property="article:author" content="Sonh">
+<meta property="article:tag" content="技术,成长,小白">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://sonh66.github.io/img/%E5%B0%81%E9%9D%A228.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web",
+  "url": "https://sonh66.github.io/2026/08/01/XRAY_RAD_BURP%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/",
+  "image": "https://sonh66.github.io/img/%E5%B0%81%E9%9D%A228.png",
+  "datePublished": "2026-08-01T12:17:00.000Z",
+  "dateModified": "2026-08-01T12:14:39.014Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Sonh",
+      "url": "https://sonh66.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://sonh66.github.io/2026/08/01/XRAY_RAD_BURP%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      if ($loadingBox.classList.contains('loaded')) return
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+
+  if (document.readyState === 'complete') {
+    preloader.endLoading()
+  } else {
+    window.addEventListener('load', preloader.endLoading)
+    document.addEventListener('DOMContentLoaded', preloader.endLoading)
+    // Add timeout protection: force end after 7 seconds
+    setTimeout(preloader.endLoading, 7000)
+  }
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div class="bg-animation" id="web_bg" style="background-image: url(/img/bg.jpg);"></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E5%B0%81%E9%9D%A228.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/butterfly-icon.png" alt="Logo"><span class="site-name">Sonh's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-01T12:17:00.000Z" title="发表于 2026-08-01 20:17:00">2026-08-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-01T12:14:39.014Z" title="更新于 2026-08-01 20:14:39">2026-08-01</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><hr>
+<h1 id="Xray-漏洞扫描器"><a href="#Xray-漏洞扫描器" class="headerlink" title="Xray 漏洞扫描器"></a>Xray 漏洞扫描器</h1><h2 id="工具介绍"><a href="#工具介绍" class="headerlink" title="工具介绍"></a>工具介绍</h2><p>xray 是一款功能强大的安全评估工具，由多名经验丰富的一线安全从业者呕心打造而成，特性有：</p>
+<ol>
+<li><strong>检测速度快</strong>：发包速度快；漏洞检测算法效率高。</li>
+<li><strong>支持范围广</strong>：大至 OWASP Top 10 通用漏洞检测，小至各种 CMS 框架 POC，均可以支持。</li>
+<li><strong>代码质量高</strong>：编写代码的人员素质高，通过 Code Review、单元测试、集成测试等多层验证来提升代码可靠性。</li>
+<li><strong>高级可定制</strong>：通过配置文件暴露了引擎的各种参数，通过修改配置文件可以客制化功能。</li>
+<li><strong>安全无威胁</strong>：xray 定位为一款安全辅助评估工具，而不是攻击工具，内置的所有 payload 和 poc 均为无害化检查。</li>
+</ol>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801185448414.png" alt="image-20260801185448414"></p>
+<h2 id="工具下载"><a href="#工具下载" class="headerlink" title="工具下载"></a>工具下载</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://pan.quark.cn/s/b831cfbc15a1</span><br></pre></td></tr></table></figure>
+
+<h2 id="工具使用"><a href="#工具使用" class="headerlink" title="工具使用"></a>工具使用</h2><h3 id="主动扫描"><a href="#主动扫描" class="headerlink" title="主动扫描"></a>主动扫描</h3><p>主动模式：利用爬虫模拟人工去点击网页的链接，然后去分析扫描，爬虫不需要人工的介入，实现自动扫描。</p>
+<p><strong>步骤：</strong></p>
+<ol>
+<li>打开 cmd</li>
+<li>切换到 xray 的存放目录：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd 存放xray的目录</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>运行扫描语句：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Xray.exe webscan --basic-crawler http://xxx.com/ --html-output 1.html</span><br></pre></td></tr></table></figure>
+
+<h3 id="被动扫描"><a href="#被动扫描" class="headerlink" title="被动扫描"></a>被动扫描</h3><p>被动模式：不会自动地帮我们探测，需要探测哪里，手动浏览点击页面即可。</p>
+<p><strong>步骤：</strong></p>
+<ol>
+<li>生成证书：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Xray.exe genca</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801185924181.png" alt="image-20260801185924181"></p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801185948919.png" alt="image-20260801185948919"></p>
+<ol start="2">
+<li>安装证书，和 BP 的证书安装方式一样</li>
+<li>启动 Xray：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Xray.exe webscan --listen 127.0.0.1:7777 --html-output 2.html</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><p>在浏览器添加一个代理服务器并开启代理</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801190324773.png" alt="image-20260801190324773"></p>
+</li>
+<li><p>人工浏览网站，xray 即可对请求进行分析</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801191426135.png" alt="image-20260801191426135"></p>
+</li>
+</ol>
+<h3 id="BP-联动-Xray"><a href="#BP-联动-Xray" class="headerlink" title="BP 联动 Xray"></a>BP 联动 Xray</h3><p>联动扫描：Xray 和一些其他的网络安全工具联合扫描，在实际测试过程中，除了被动扫描，也时常需要手工测试。这里使用 Burp Suite 的原生功能与 xray 建立起一个多层代理，让流量从 Burp Suite 转发到 xray 中。</p>
+<p><strong>步骤：</strong></p>
+<ol>
+<li><p>打开 BP 设置，进入【Network】设置，选择【Connections】，找到【上游代理服务器】</p>
+</li>
+<li><p>配置代理地址如下</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801195228661.png" alt="image-20260801195228661"></p>
+</li>
+<li><p>运行 xray：</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Xray.exe webscan --listen 127.0.0.1:7777 --html-output 3.html</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><p>启动 BP 抓包，经过 BP 的流量就会发送到 xray 自动扫描</p>
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801195835455.png" alt="image-20260801195835455"></p>
+</li>
+</ol>
+<hr>
+<h1 id="Rad-联动-XRAY"><a href="#Rad-联动-XRAY" class="headerlink" title="Rad 联动 XRAY"></a>Rad 联动 XRAY</h1><h2 id="Rad-基本使用（记得提前把杀毒软件关了）"><a href="#Rad-基本使用（记得提前把杀毒软件关了）" class="headerlink" title="Rad 基本使用（记得提前把杀毒软件关了）"></a>Rad 基本使用（记得提前把杀毒软件关了）</h2><p>基本使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rad.exe -t https://www.yijinglab.com/</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801200157930.png" alt="image-20260801200157930"></p>
+<p>手动登录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rad.exe -t https://www.hetianlab.com/ -wait-login</span><br></pre></td></tr></table></figure>
+
+<p>执行以上命令会自动禁用无头浏览模式，开启一个浏览器供手动登录。在登录完毕后在命令行界面点击回车键继续爬取。</p>
+<h2 id="Rad-联用-Xray"><a href="#Rad-联用-Xray" class="headerlink" title="Rad 联用 Xray"></a>Rad 联用 Xray</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Xray.exe ws --listen 127.0.0.1:7777 --ho proxy.html</span><br><span class="line">rad.exe -t https://www.yijinglab.com/ -http-proxy 127.0.0.1:7777</span><br></pre></td></tr></table></figure>
+
+<p><img src="/./../imgs/$%7Bfiilename%7D/image-20260801200747193.png" alt="image-20260801200747193"></p>
+<h1 id="Happy-Hacking-🚀"><a href="#Happy-Hacking-🚀" class="headerlink" title="Happy Hacking 🚀"></a>Happy Hacking 🚀</h1></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://sonh66.github.io">Sonh</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://sonh66.github.io/2026/08/01/XRAY_RAD_BURP%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/">https://sonh66.github.io/2026/08/01/XRAY_RAD_BURP%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://sonh66.github.io" target="_blank">Sonh's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E5%B0%81%E9%9D%A228.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/07/30/Web%E5%AE%9E%E6%88%98%E7%AC%94%E8%AE%B0_%E4%BB%8EVim%E6%BA%90%E7%A0%81%E6%B3%84%E9%9C%B2%E5%88%B0PHP%E5%9B%9E%E6%BA%AF%E9%99%90%E5%88%B6%E7%BB%95%E8%BF%87/" title="Web 实战笔记：从 Vim 源码泄露到 PHP 回溯限制绕过"><img class="cover" src="/img/%E5%B0%81%E9%9D%A227.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Web 实战笔记：从 Vim 源码泄露到 PHP 回溯限制绕过</div></div><div class="info-2"><div class="info-item-1">引言在 CTF (Capture The Flag) 的 Web 赛道中，信息泄露与代码审计是两大核心考点。这里将以一道经典的 PolarCTF 题目 [web]swp 为切入点，详细复盘从发现敏感文件、代码审计到构造 Payload 绕过的完整解题流程。同时，将对题目中涉及的底层机制（如 Vim 交换文件、PHP PCRE 回溯限制、PHP 弱类型）进行深度剖析，帮助大家建立举一反三的 Web 安全思维。 靶机地址：PolarD&amp;N 实战复盘：PolarCTF [web]swp 解题全流程发现敏感文件 (.swp 泄露) 题目提示：题目名为 “swp”，指向 Vim 编辑器产生的临时交换文件（Swap file）。   目录扫描：使用 dirsearch 对靶机地址进行扫描，发现隐藏文件 /.index.php.swp。   获取源码：浏览器直接访问该 .swp 文件并下载，虽然包含乱码，但可从中提取出核心的 PHP 源码。    代码审计与逻辑分析恢复出的核心代码如下： 1234567891011121314151617function jiuzhe($xdmtql)...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Sonh</div><div class="author-info-description">欢迎来到我的成长博客，这里分享一位小白学习CTF的历程</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">28</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Sonh66"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Forget about yesterday as soon as the sun rises.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Xray-%E6%BC%8F%E6%B4%9E%E6%89%AB%E6%8F%8F%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">Xray 漏洞扫描器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">工具介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E4%B8%8B%E8%BD%BD"><span class="toc-number">1.2.</span> <span class="toc-text">工具下载</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8"><span class="toc-number">1.3.</span> <span class="toc-text">工具使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E5%8A%A8%E6%89%AB%E6%8F%8F"><span class="toc-number">1.3.1.</span> <span class="toc-text">主动扫描</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A2%AB%E5%8A%A8%E6%89%AB%E6%8F%8F"><span class="toc-number">1.3.2.</span> <span class="toc-text">被动扫描</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#BP-%E8%81%94%E5%8A%A8-Xray"><span class="toc-number">1.3.3.</span> <span class="toc-text">BP 联动 Xray</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Rad-%E8%81%94%E5%8A%A8-XRAY"><span class="toc-number">2.</span> <span class="toc-text">Rad 联动 XRAY</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Rad-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%EF%BC%88%E8%AE%B0%E5%BE%97%E6%8F%90%E5%89%8D%E6%8A%8A%E6%9D%80%E6%AF%92%E8%BD%AF%E4%BB%B6%E5%85%B3%E4%BA%86%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">Rad 基本使用（记得提前把杀毒软件关了）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Rad-%E8%81%94%E7%94%A8-Xray"><span class="toc-number">2.2.</span> <span class="toc-text">Rad 联用 Xray</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Happy-Hacking-%F0%9F%9A%80"><span class="toc-number">3.</span> <span class="toc-text">Happy Hacking 🚀</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/08/01/XRAY_RAD_BURP%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" title="XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web"><img src="/img/%E5%B0%81%E9%9D%A228.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web"/></a><div class="content"><a class="title" href="/2026/08/01/XRAY_RAD_BURP%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" title="XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web">XRAY、RAD、BURP 实现自动化漏洞挖掘 - Web</a><time datetime="2026-08-01T12:17:00.000Z" title="发表于 2026-08-01 20:17:00">2026-08-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/07/30/Web%E5%AE%9E%E6%88%98%E7%AC%94%E8%AE%B0_%E4%BB%8EVim%E6%BA%90%E7%A0%81%E6%B3%84%E9%9C%B2%E5%88%B0PHP%E5%9B%9E%E6%BA%AF%E9%99%90%E5%88%B6%E7%BB%95%E8%BF%87/" title="Web 实战笔记：从 Vim 源码泄露到 PHP 回溯限制绕过"><img src="/img/%E5%B0%81%E9%9D%A227.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Web 实战笔记：从 Vim 源码泄露到 PHP 回溯限制绕过"/></a><div class="content"><a class="title" href="/2026/07/30/Web%E5%AE%9E%E6%88%98%E7%AC%94%E8%AE%B0_%E4%BB%8EVim%E6%BA%90%E7%A0%81%E6%B3%84%E9%9C%B2%E5%88%B0PHP%E5%9B%9E%E6%BA%AF%E9%99%90%E5%88%B6%E7%BB%95%E8%BF%87/" title="Web 实战笔记：从 Vim 源码泄露到 PHP 回溯限制绕过">Web 实战笔记：从 Vim 源码泄露到 PHP 回溯限制绕过</a><time datetime="2026-07-30T04:35:00.000Z" title="发表于 2026-07-30 12:35:00">2026-07-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/07/29/%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5%E4%B8%8E%20CSRF%20%E8%B7%A8%E7%AB%99%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0%E6%9C%BA%E5%88%B6/" title="同源策略与 CSRF 跨站请求伪造机制"><img src="/img/%E5%B0%81%E9%9D%A226.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="同源策略与 CSRF 跨站请求伪造机制"/></a><div class="content"><a class="title" href="/2026/07/29/%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5%E4%B8%8E%20CSRF%20%E8%B7%A8%E7%AB%99%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0%E6%9C%BA%E5%88%B6/" title="同源策略与 CSRF 跨站请求伪造机制">同源策略与 CSRF 跨站请求伪造机制</a><time datetime="2026-07-28T16:46:00.000Z" title="发表于 2026-07-29 00:46:00">2026-07-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/07/28/ai-fail-lab%E9%83%A8%E7%BD%B2%E5%AE%89%E8%A3%85%E6%8C%87%E5%8D%97/" title="AI 靶场 (ai-fail-lab) 部署安装指南"><img src="/img/%E5%B0%81%E9%9D%A225.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="AI 靶场 (ai-fail-lab) 部署安装指南"/></a><div class="content"><a class="title" href="/2026/07/28/ai-fail-lab%E9%83%A8%E7%BD%B2%E5%AE%89%E8%A3%85%E6%8C%87%E5%8D%97/" title="AI 靶场 (ai-fail-lab) 部署安装指南">AI 靶场 (ai-fail-lab) 部署安装指南</a><time datetime="2026-07-28T15:18:00.000Z" title="发表于 2026-07-28 23:18:00">2026-07-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/07/27/%E4%BB%8E%E4%BF%A1%E6%81%AF%E6%A3%80%E7%B4%A2%E5%88%B0%20Burp%20Intruder%20%E5%AE%9E%E6%88%98/" title="从信息检索到 Burp Intruder 实战"><img src="/img/%E5%B0%81%E9%9D%A224.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="从信息检索到 Burp Intruder 实战"/></a><div class="content"><a class="title" href="/2026/07/27/%E4%BB%8E%E4%BF%A1%E6%81%AF%E6%A3%80%E7%B4%A2%E5%88%B0%20Burp%20Intruder%20%E5%AE%9E%E6%88%98/" title="从信息检索到 Burp Intruder 实战">从信息检索到 Burp Intruder 实战</a><time datetime="2026-07-27T15:58:00.000Z" title="发表于 2026-07-27 23:58:00">2026-07-27</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/%E5%B0%81%E9%9D%A228.png);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Sonh</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="/js/tw_cn.js?v=5.5.4"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="true"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="true" data-click="true"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
