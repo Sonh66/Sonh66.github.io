@@ -237,6 +237,49 @@
   object-fit: cover;
 }
 
+/* Friend links: airy blue cards that stay readable in both themes. */
+#article-container .flink .flink-desc {
+  margin: -0.35rem 0 1.4rem;
+  color: var(--font-color);
+  opacity: 0.72;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+#article-container .flink .flink-list > .flink-list-item {
+  border: 1px solid rgba(101, 181, 238, 0.3);
+  background: linear-gradient(135deg, rgba(235, 248, 255, 0.92), rgba(214, 239, 255, 0.72));
+  box-shadow: 0 8px 24px rgba(66, 151, 205, 0.1);
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+}
+
+#article-container .flink .flink-list > .flink-list-item:hover {
+  border-color: rgba(73, 177, 245, 0.68);
+  box-shadow: 0 14px 30px rgba(66, 151, 205, 0.2);
+  transform: translateY(-6px);
+}
+
+#article-container .flink .flink-item-icon {
+  display: none;
+}
+
+#article-container .flink .flink-item-name {
+  padding: 20px 16px 0;
+  height: 46px;
+  text-align: center;
+}
+
+#article-container .flink .flink-item-desc {
+  padding: 7px 16px 16px;
+  height: 44px;
+  text-align: center;
+}
+
+[data-theme='dark'] #article-container .flink .flink-list > .flink-list-item {
+  border-color: rgba(100, 184, 238, 0.28);
+  background: linear-gradient(135deg, rgba(31, 67, 90, 0.88), rgba(24, 53, 73, 0.82));
+}
+
 /* Click effect: a soft ripple surrounded by tiny star-like sparks. */
 .sonh-click-burst {
   position: fixed;
