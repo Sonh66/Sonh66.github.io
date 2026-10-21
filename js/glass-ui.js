@@ -27,7 +27,8 @@
   ];
   let posts = [];
   let indexError = false;
-  const dataReady = fetch('/sonh-ui-data.json').then(response => {
+  const dataSource = $('script[data-sonh-index]')?.dataset.sonhIndex || '/sonh-ui-data.json';
+  const dataReady = fetch(dataSource).then(response => {
     if (!response.ok) throw new Error('Index unavailable');
     return response.json();
   }).then(data => { posts = data.posts; return posts; }).catch(() => { indexError = true; return []; });
