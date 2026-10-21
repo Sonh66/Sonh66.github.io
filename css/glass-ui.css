@@ -53,7 +53,7 @@ body { color: var(--ink); padding-bottom: 105px; }
 #recent-posts .recent-post-item .article-meta-wrap { color: var(--muted); font-size: 12px; margin-top: 10px; }
 .recent-post-item, #aside-content .card-widget, #page, #post, #archive, #tag {
   border: 1px solid var(--glass-line); background: var(--glass);
-  backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(130%); -webkit-backdrop-filter: blur(14px) saturate(130%);
   box-shadow: var(--glass-shadow); border-radius: 24px;
 }
 .recent-post-item::before, #aside-content .card-widget::before, #post::before, #page::before, #archive::before, #tag::before { display: none; }
@@ -90,11 +90,10 @@ body { color: var(--ink); padding-bottom: 105px; }
 button.sonh-button, .sonh-open-article { font: inherit; cursor: pointer; color: var(--blue); background: rgba(151,213,250,.2); border: 1px solid var(--glass-line); border-radius: 12px; padding: 8px 14px; }
 .sonh-open-article { align-self: flex-start; order: 2; font-size: 12px; margin: 0 24px 22px; }
 /* The pointer paints only the active card, with a maximum four-degree tilt. */
-.sonh-spotlight { position: relative; transition: transform .32s ease,box-shadow .32s ease; transform: perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); }
+.sonh-spotlight { position: relative; transition: transform .32s ease,box-shadow .32s ease; transform: none; }
 .sonh-spotlight:hover { transform: perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); }
 .sonh-spotlight::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: var(--light-on,0); background: radial-gradient(260px circle at var(--light-x,50%) var(--light-y,50%),rgba(255,255,255,.45),transparent 78%); box-shadow: inset 0 0 0 1px rgba(164,222,255,.7); transition: opacity .3s; }
 /* Color flows around the outline only; the pale-blue glass stays untouched. */
-@property --sonh-border-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 .sonh-bordered-card:where(:not(#nav):not(.sonh-dock):not(dialog)) { position: relative; }
 #recent-posts .recent-post-items > .recent-post-item.sonh-bordered-card,
 #aside-content .card-widget.sonh-bordered-card,
@@ -107,18 +106,20 @@ button.sonh-button, .sonh-open-article { font: inherit; cursor: pointer; color: 
 .sonh-card-edge {
   position: absolute; inset: 0; z-index: 2; padding: 3px; border-radius: inherit;
   pointer-events: none; opacity: 1;
-  background: conic-gradient(from var(--sonh-border-angle),#00cfff 0deg,#d4faff 36deg,#fff 42deg,#40d9ff 50deg,#4d7cff 110deg,#aa55ff 175deg,#ff59ba 235deg,#30e5d0 300deg,#00cfff 360deg);
+  background: conic-gradient(from 0deg,#00cfff 0deg,#d4faff 36deg,#fff 42deg,#40d9ff 50deg,#4d7cff 110deg,#aa55ff 175deg,#ff59ba 235deg,#30e5d0 300deg,#00cfff 360deg);
   -webkit-mask: linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
-  animation: sonh-border-flow 5.5s linear infinite paused; transition: filter .3s;
+  animation: sonh-border-flow 5.5s linear infinite paused;
 }
 .sonh-edge-visible > .sonh-card-edge { animation-play-state: running; }
 .sonh-reader-thumb > .sonh-card-edge { padding: 2px; }
 #footer.sonh-bordered-card { border-radius: 24px; }
 #footer > .sonh-card-edge { position: absolute; }
-.sonh-bordered-card:hover > .sonh-card-edge, .sonh-bordered-card:focus-within > .sonh-card-edge { filter: brightness(1.12); }
-@keyframes sonh-border-flow { to { --sonh-border-angle: 360deg; } }
+/* Animate the cached outline's color on the compositor instead of repainting gradients. */
+@keyframes sonh-border-flow { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+body.sonh-modal-open .sonh-edge-visible:not(.sonh-dialog):not(.sonh-reader-thumb) > .sonh-card-edge { animation-play-state: paused; }
+.sonh-tab-inactive .sonh-card-edge { animation-play-state: paused !important; }
 @supports not ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
   .sonh-card-edge { background: none; border: 3px solid #4d7cff; }
 }
@@ -181,7 +182,7 @@ button.sonh-button, .sonh-open-article { font: inherit; cursor: pointer; color: 
 .sonh-dock-item:hover span, .sonh-dock-item:focus-visible span { opacity: 1; transform: translate(-50%,0); }
 /* Shared modal foundation. */
 .sonh-dialog { border: 1px solid var(--glass-line); background: var(--glass); color: var(--ink); box-shadow: 0 30px 100px rgba(17,63,99,.22); border-radius: 26px; padding: 0; backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%); }
-.sonh-dialog::backdrop { background: rgba(16,50,76,.3); backdrop-filter: blur(9px); }
+.sonh-dialog::backdrop { background: rgba(16,50,76,.3); backdrop-filter: blur(5px); }
 .sonh-command { width: min(620px,calc(100% - 32px)); margin-top: min(18vh,160px); }
 .sonh-command-field { display: flex; align-items: center; gap: 15px; padding: 22px; border-bottom: 1px solid var(--glass-line); }
 .sonh-command-field svg { width: 22px; flex-shrink: 0; }
@@ -247,6 +248,8 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 
 /* Ordinary articles keep the configured cover and wallpaper; read mode is blue. */
 body:not(.read-mode) #post { background: rgba(225,244,255,.94); }
+/* Almost-opaque reading surfaces do not need a full-article backdrop filter. */
+#post, .sonh-reader, .sonh-image { backdrop-filter: none; -webkit-backdrop-filter: none; }
 [data-theme='dark'] body:not(.read-mode) #post { background: rgba(27,54,72,.94); }
 [data-theme] body.read-mode { --readmode-light-color: #eaf7ff; --font-color: #183d59; --ink: #183d59; --muted: #56768f; background: #eaf7ff !important; }
 body.read-mode #page-header { background: none !important; transition: none; }

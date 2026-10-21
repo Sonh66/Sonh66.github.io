@@ -36,7 +36,8 @@
   // Pause border painting outside the viewport, especially on long mobile lists.
   const borderObserver = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
     entries.forEach(entry => entry.target.classList.toggle('sonh-edge-visible', entry.isIntersecting));
-  }, {rootMargin:'100px'}) : null;
+  }, {rootMargin:'0px'}) : null;
+  document.addEventListener('visibilitychange',()=>document.documentElement.classList.toggle('sonh-tab-inactive',document.hidden));
   function decorateCardBorder(card) {
     if (card.classList.contains('sonh-bordered-card')) return;
     card.classList.add('sonh-bordered-card');
