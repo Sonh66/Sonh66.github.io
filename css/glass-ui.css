@@ -93,7 +93,35 @@ button.sonh-button, .sonh-open-article { font: inherit; cursor: pointer; color: 
 .sonh-spotlight { position: relative; transition: transform .32s ease,box-shadow .32s ease; transform: perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); }
 .sonh-spotlight:hover { transform: perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); }
 .sonh-spotlight::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: var(--light-on,0); background: radial-gradient(260px circle at var(--light-x,50%) var(--light-y,50%),rgba(255,255,255,.45),transparent 78%); box-shadow: inset 0 0 0 1px rgba(164,222,255,.7); transition: opacity .3s; }
-.sonh-card-edge { position: absolute; inset: 0; z-index: 2; padding: 1px; border-radius: inherit; pointer-events: none; opacity: var(--light-on,0); background: radial-gradient(180px circle at var(--light-x,50%) var(--light-y,50%),#79cfff,transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; transition: opacity .3s; }
+/* Color flows around the outline only; the pale-blue glass stays untouched. */
+@property --sonh-border-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.sonh-bordered-card:where(:not(#nav):not(.sonh-dock):not(dialog)) { position: relative; }
+#recent-posts .recent-post-items > .recent-post-item.sonh-bordered-card,
+#aside-content .card-widget.sonh-bordered-card,
+.flink-list-item.sonh-bordered-card,
+#post.sonh-bordered-card, #page.sonh-bordered-card, #archive.sonh-bordered-card, #tag.sonh-bordered-card,
+#footer.sonh-bordered-card,
+.sonh-dialog.sonh-bordered-card, .sonh-dock.sonh-bordered-card {
+  box-shadow: var(--glass-shadow),0 0 0 1px rgba(81,194,255,.35),0 0 14px rgba(58,177,255,.32);
+}
+.sonh-card-edge {
+  position: absolute; inset: 0; z-index: 2; padding: 3px; border-radius: inherit;
+  pointer-events: none; opacity: 1;
+  background: conic-gradient(from var(--sonh-border-angle),#00cfff 0deg,#d4faff 36deg,#fff 42deg,#40d9ff 50deg,#4d7cff 110deg,#aa55ff 175deg,#ff59ba 235deg,#30e5d0 300deg,#00cfff 360deg);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: sonh-border-flow 5.5s linear infinite paused; transition: filter .3s;
+}
+.sonh-edge-visible > .sonh-card-edge { animation-play-state: running; }
+.sonh-reader-thumb > .sonh-card-edge { padding: 2px; }
+#footer.sonh-bordered-card { border-radius: 24px; }
+#footer > .sonh-card-edge { position: absolute; }
+.sonh-bordered-card:hover > .sonh-card-edge, .sonh-bordered-card:focus-within > .sonh-card-edge { filter: brightness(1.12); }
+@keyframes sonh-border-flow { to { --sonh-border-angle: 360deg; } }
+@supports not ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  .sonh-card-edge { background: none; border: 3px solid #4d7cff; }
+}
 /* The date picker separates its glass drops without blurring their labels. */
 .sonh-library-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
 .sonh-library-head h2 { font-size: 27px; letter-spacing: -.04em; color: var(--ink); margin: 0 0 3px; }
@@ -133,6 +161,22 @@ button.sonh-button, .sonh-open-article { font: inherit; cursor: pointer; color: 
 .sonh-dock-item svg { width: 21px; height: 21px; }
 .sonh-dock-item[aria-current='page'] { color: var(--blue); background: rgba(178,224,252,.5); }
 .sonh-dock-item[aria-current='page']::after { content:''; position: absolute; bottom: -7px; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
+.sonh-dock-capsule {
+  position: absolute; left: 0; pointer-events: none; z-index: 0; border-radius: 999px;
+  background: linear-gradient(135deg,rgba(223,247,255,.86),rgba(136,207,250,.6));
+  border: 1px solid rgba(255,255,255,.94);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.95),inset 0 -1px 3px rgba(96,173,220,.32),0 3px 12px rgba(63,146,201,.18);
+  transform-origin: center; will-change: transform;
+}
+.sonh-dock.sonh-dock-ready .sonh-dock-item { z-index: 1; background: rgba(241,250,255,.16); }
+.sonh-dock.sonh-dock-ready .sonh-dock-item[aria-current='page'] { color: var(--muted); }
+.sonh-dock.sonh-dock-ready .sonh-dock-item[aria-current='page']::after { display: none; }
+.sonh-dock.sonh-dock-ready .sonh-dock-item.is-dock-target { color: var(--blue); background: transparent; border-color: transparent; }
+[data-theme='dark'] .sonh-dock-capsule { background: linear-gradient(135deg,rgba(117,187,231,.45),rgba(56,133,182,.5)); border-color: rgba(214,242,255,.8); }
+.sonh-dock a.sonh-dock-item { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.sonh-dock button.sonh-dock-item { touch-action: manipulation; }
+.sonh-dock.is-dragging .sonh-dock-capsule { border-color: #fff; box-shadow: inset 0 1px 3px #fff,0 0 12px rgba(133,213,255,.55); }
+.sonh-dock.is-dragging .sonh-dock-item span { opacity: 0; }
 .sonh-dock-item span { position: absolute; bottom: calc(100% + 15px); left: 50%; transform: translate(-50%,5px); opacity: 0; white-space: nowrap; pointer-events: none; background: var(--ice); color: var(--ink); border: 1px solid var(--glass-line); border-radius: 9px; padding: 5px 10px; font-size: 12px; transition: .2s; }
 .sonh-dock-item:hover span, .sonh-dock-item:focus-visible span { opacity: 1; transform: translate(-50%,0); }
 /* Shared modal foundation. */
@@ -194,6 +238,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   .sonh-reader-strip { padding: 12px; } .sonh-reader-thumb { flex-basis: 140px; }
 }
 @media (prefers-reduced-motion:reduce) {
+  .sonh-card-edge { animation: none; transition: none; }
   .sonh-spotlight, .sonh-spotlight:hover { transform: none !important; }
   .sonh-date-options button, .sonh-goo span, .sonh-chart span, .sonh-dock-item, .sonh-command-option, .sonh-spotlight::after { transition: none !important; }
   .sonh-dock-item { transform: none !important; }

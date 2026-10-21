@@ -33,10 +33,21 @@
   }).then(data => { posts = data.posts; return posts; }).catch(() => { indexError = true; return []; });
   const activeMenu = menus.find(item => item.url === '/' ? location.pathname === '/' || /^\/page\//.test(location.pathname) : location.pathname.startsWith(item.url));
 
+  // Pause border painting outside the viewport, especially on long mobile lists.
+  const borderObserver = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
+    entries.forEach(entry => entry.target.classList.toggle('sonh-edge-visible', entry.isIntersecting));
+  }, {rootMargin:'100px'}) : null;
+  function decorateCardBorder(card) {
+    if (card.classList.contains('sonh-bordered-card')) return;
+    card.classList.add('sonh-bordered-card');
+    const edge=document.createElement('span');edge.className='sonh-card-edge';edge.setAttribute('aria-hidden','true');card.append(edge);
+    if (borderObserver) borderObserver.observe(card);
+    else card.classList.add('sonh-edge-visible');
+  }
   function trackSpotlight(card) {
     if (card.id === 'card-toc' || card.classList.contains('sonh-spotlight')) return;
     card.classList.add('sonh-spotlight');
-    const edge=document.createElement('span');edge.className='sonh-card-edge';edge.setAttribute('aria-hidden','true');card.append(edge);
+    decorateCardBorder(card);
     let frame = 0;
     card.addEventListener('pointermove', event => {
       if (!finePointer.matches || reduced.matches || frame) return;
@@ -58,6 +69,8 @@
     });
   }
   $$('.recent-post-item, #aside-content .card-widget, .flink-list-item').forEach(trackSpotlight);
+  // Structural panels get the same outline, without pointer tilt or positioning changes.
+  $$('#post, #page, #archive, #tag, #card-toc, #footer').forEach(decorateCardBorder);
 
   // Independent mechanical reels. Lower digits settle more quickly.
   const clock=$('.sonh-clock');
@@ -99,6 +112,7 @@
   function createDialog(className, label, html) {
     const dialog = document.createElement('dialog'); dialog.className = `sonh-dialog ${className}`;
     dialog.setAttribute('aria-label',label); dialog.innerHTML = html; document.body.append(dialog);
+    decorateCardBorder(dialog);
     dialog.addEventListener('click',event=>{ if (event.target === dialog) {
       const r=dialog.getBoundingClientRect();
       if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom) dialog.sonhClose ? dialog.sonhClose() : dialog.close();
@@ -190,11 +204,130 @@
     mobileToc.addEventListener('change',()=>setTocOpen(false));
   }
   const dockSearch = document.createElement('button'); dockSearch.type='button'; dockSearch.className='sonh-dock-item'; dockSearch.setAttribute('aria-label','打开搜索命令面板'); dockSearch.innerHTML=`${icon('search')}<span>搜索</span>`; dockSearch.addEventListener('click',openCommand); dock.append(dockSearch); document.body.append(dock);
+  decorateCardBorder(dock);
   const dockItems=$$('.sonh-dock-item',dock);
   function magnify(index) { if(!finePointer.matches||reduced.matches)return; const visible=dockItems.filter(item=>getComputedStyle(item).display!=='none'); const active=visible.indexOf(dockItems[index]); visible.forEach((item,i)=>{ const distance=Math.abs(i-active); item.style.setProperty('--dock-scale',distance===0?'1.28':distance===1?'1.12':'1'); item.style.setProperty('--dock-lift',distance===0?'-9px':distance===1?'-3px':'0px'); }); }
   dockItems.forEach((item,i)=>{item.addEventListener('pointerenter',()=>magnify(i));item.addEventListener('focus',()=>magnify(i));});
   function resetDock(){dockItems.forEach(item=>{item.style.removeProperty('--dock-scale');item.style.removeProperty('--dock-lift');});}
   dock.addEventListener('pointerleave',resetDock);dock.addEventListener('focusout',event=>{if(!dock.contains(event.relatedTarget))resetDock();});
+
+  // Touch has no hover: move the glass highlight on activation before navigating.
+  const capsule=document.createElement('div');capsule.className='sonh-dock-capsule';capsule.setAttribute('aria-hidden','true');dock.prepend(capsule);
+  let capsuleTarget=$('[aria-current="page"]',dock),capsuleMotion=null,dockNavigation=0;
+  function placeCapsule(target,animate=false){
+    if(!target){capsuleMotion?.cancel();capsule.hidden=true;dock.classList.remove('sonh-dock-ready');dockItems.forEach(item=>item.classList.remove('is-dock-target'));return;}
+    const dockRect=dock.getBoundingClientRect(),oldRect=capsule.getBoundingClientRect();
+    const wasVisible=!capsule.hidden&&dock.classList.contains('sonh-dock-ready');
+    // Layout coordinates ignore the existing desktop hover magnification.
+    const x=target.offsetLeft,width=target.offsetWidth;
+    const from=wasVisible?oldRect.left-dockRect.left-dock.clientLeft+(oldRect.width-width)/2:x;
+    const scale=wasVisible?oldRect.width/width:1;
+    capsuleMotion?.cancel();capsuleMotion=null;
+    capsule.hidden=false;capsule.style.width=`${width}px`;capsule.style.height=`${target.offsetHeight}px`;
+    capsule.style.top=`${target.offsetTop}px`;capsule.style.transform=`translateX(${x}px)`;
+    dock.classList.add('sonh-dock-ready');
+    dockItems.forEach(item=>item.classList.toggle('is-dock-target',item===target));
+    capsuleTarget=target;
+    if(!animate||reduced.matches||!capsule.animate||(Math.abs(x-from)<1&&Math.abs(scale-1)<.005))return;
+    const direction=Math.sign(x-from)||1,stretch=Math.max(scale,1+Math.min(.55,Math.abs(x-from)/240));
+    capsuleMotion=capsule.animate([
+      {transform:`translateX(${from}px) scaleX(${scale}) scaleY(1)`,offset:0},
+      {transform:`translateX(${from+(x-from)*.48}px) scaleX(${stretch}) scaleY(.88)`,offset:.38},
+      {transform:`translateX(${x+direction*3}px) scaleX(.94) scaleY(1.04)`,offset:.76},
+      {transform:`translateX(${x-direction}px) scaleX(1.025) scaleY(.985)`,offset:.9},
+      {transform:`translateX(${x}px) scaleX(1) scaleY(1)`,offset:1}
+    ],{duration:460,easing:'cubic-bezier(.22,.65,.3,1)'});
+  }
+  placeCapsule(capsuleTarget);
+  let suppressDockClickUntil=0;
+  function activateDockLink(link){
+    clearTimeout(dockNavigation);
+    const samePage=new URL(link.href).pathname===location.pathname;
+    placeCapsule(link,true);
+    if(!samePage){
+      if(reduced.matches||!capsule.animate)location.assign(link.href);
+      else dockNavigation=setTimeout(()=>location.assign(link.href),480);
+    }
+  }
+  const dockLinks=$$('a.sonh-dock-item',dock);
+  dockLinks.forEach(link=>link.addEventListener('click',event=>{
+    if(performance.now()<suppressDockClickUntil){event.preventDefault();return;}
+    if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey||link.hasAttribute('download')||link.target==='_blank')return;
+    if(reduced.matches||!capsule.animate)return;
+    event.preventDefault();activateDockLink(link);
+  }));
+  let dockGesture=null;
+  function nearestDockLink(clientX){
+    return dockLinks.reduce((nearest,link)=>{
+      const rect=link.getBoundingClientRect(),best=nearest.getBoundingClientRect();
+      return Math.abs(clientX-rect.left-rect.width/2)<Math.abs(clientX-best.left-best.width/2)?link:nearest;
+    },dockLinks[0]);
+  }
+  dock.addEventListener('pointerdown',event=>{
+    const link=event.target.closest('a.sonh-dock-item');
+    if(!link)return;
+    suppressDockClickUntil=0;
+    if(event.pointerType==='mouse'||!event.isPrimary||event.button!==0)return;
+    clearTimeout(dockNavigation);
+    const gesture={id:event.pointerId,startX:event.clientX,startY:event.clientY,lastX:event.clientX,active:false,cancelled:false,origin:capsuleTarget};
+    dockGesture=gesture;link.setPointerCapture(event.pointerId);
+    gesture.timer=setTimeout(()=>{
+      if(dockGesture!==gesture||gesture.cancelled)return;
+      gesture.active=true;dock.classList.add('is-dragging');placeCapsule(link,true);
+    },240);
+  });
+  dock.addEventListener('pointermove',event=>{
+    const gesture=dockGesture;if(!gesture||gesture.id!==event.pointerId)return;
+    if(!gesture.active){
+      if(Math.hypot(event.clientX-gesture.startX,event.clientY-gesture.startY)>10){clearTimeout(gesture.timer);gesture.cancelled=true;}
+      return;
+    }
+    event.preventDefault();capsuleMotion?.cancel();capsuleMotion=null;
+    const rect=dock.getBoundingClientRect(),width=capsule.offsetWidth;
+    const x=Math.max(dockLinks[0].offsetLeft,Math.min(dockLinks.at(-1).offsetLeft,event.clientX-rect.left-dock.clientLeft-width/2));
+    const stretch=reduced.matches?1:1+Math.min(.42,Math.abs(event.clientX-gesture.lastX)/90);
+    capsule.style.transform=`translateX(${x}px) scaleX(${stretch}) scaleY(${1-(stretch-1)*.25})`;
+    gesture.lastX=event.clientX;
+    const nearest=nearestDockLink(event.clientX);
+    dockItems.forEach(item=>item.classList.toggle('is-dock-target',item===nearest));
+  },{passive:false});
+  function finishDockGesture(event,cancelled=false){
+    const gesture=dockGesture;if(!gesture||gesture.id!==event.pointerId)return;
+    clearTimeout(gesture.timer);dockGesture=null;dock.classList.remove('is-dragging');
+    if(gesture.active||gesture.cancelled){
+      suppressDockClickUntil=performance.now()+650;
+      if(gesture.active&&!cancelled)activateDockLink(nearestDockLink(event.clientX));
+      else placeCapsule(gesture.origin,true);
+    }
+  }
+  dock.addEventListener('pointerup',event=>finishDockGesture(event));
+  dock.addEventListener('pointercancel',event=>finishDockGesture(event,true));
+  dock.addEventListener('lostpointercapture',event=>finishDockGesture(event,true));
+  dock.addEventListener('contextmenu',event=>{if(event.target.closest('a.sonh-dock-item')&&!finePointer.matches)event.preventDefault();});
+  // Some touch browsers omit a compatibility click after a cancelled drag.
+  // Activate utilities on a completed tap and discard only its duplicate click.
+  let utilityTouchClick=null;
+  document.addEventListener('pointerdown',()=>{utilityTouchClick=null;},true);
+  document.addEventListener('click',event=>{
+    const tap=utilityTouchClick;
+    if(tap&&event.isTrusted&&event.detail>0&&performance.now()-tap.time<650&&Math.hypot(event.clientX-tap.x,event.clientY-tap.y)<12){
+      utilityTouchClick=null;event.preventDefault();event.stopImmediatePropagation();
+    }
+  },true);
+  $$('button.sonh-dock-item',dock).forEach(button=>{
+    let touchPress=null;
+    button.addEventListener('pointerdown',event=>{
+      if(event.pointerType==='touch'&&event.isPrimary)touchPress={id:event.pointerId,x:event.clientX,y:event.clientY};
+    });
+    button.addEventListener('pointercancel',()=>{touchPress=null;});
+    button.addEventListener('pointerup',event=>{
+      const press=touchPress;touchPress=null;
+      if(!press||press.id!==event.pointerId||Math.hypot(event.clientX-press.x,event.clientY-press.y)>10)return;
+      event.preventDefault();utilityTouchClick={x:event.clientX,y:event.clientY,time:performance.now()};button.click();
+    });
+  });
+  new ResizeObserver(()=>placeCapsule(capsuleTarget)).observe(dock);
+  reduced.addEventListener('change',()=>placeCapsule(capsuleTarget));
 
   const reader=createDialog('sonh-reader','文章详情',`<header class="sonh-reader-top"><span>阅读视图</span><button class="sonh-close" aria-label="关闭阅读视图">关闭 ×</button></header><div class="sonh-reader-scroll" aria-live="polite"></div><nav class="sonh-reader-strip" aria-label="切换阅读文章"></nav>`);
   const readerScroll=$('.sonh-reader-scroll',reader), strip=$('.sonh-reader-strip',reader);
@@ -218,12 +351,13 @@
     const request=++articleRequest;
     readerScroll.innerHTML='<div class="sonh-reader-status" role="status">正在打开文章…</div>';
     readerScroll.scrollTop=0;
+    if(borderObserver)$$('.sonh-bordered-card',strip).forEach(card=>borderObserver.unobserve(card));
     strip.replaceChildren();
     const available=posts.length?posts:[post];
     available.forEach(item=>{
       const button=document.createElement('button');button.type='button';button.className='sonh-reader-thumb';button.setAttribute('aria-pressed',String(item.url===post.url));
       if(item.cover){const img=document.createElement('img');img.src=item.cover;img.alt='';img.loading='lazy';button.append(img);}
-      const label=document.createElement('span');label.textContent=item.title;button.append(label);button.addEventListener('click',()=>openArticle(item));strip.append(button);
+      const label=document.createElement('span');label.textContent=item.title;button.append(label);button.addEventListener('click',()=>openArticle(item));strip.append(button);decorateCardBorder(button);
     });
     $('[aria-pressed="true"]',strip)?.scrollIntoView({block:'nearest',inline:'center'});
     try {
@@ -271,6 +405,7 @@
     const list=$('.recent-post-items',recent);if(!list)return;
     const months=[...new Set(posts.map(post=>post.month))]; let chosen='',limit=10,currentPosts=posts;
     const libraryCard=document.createElement('section');libraryCard.className='card-widget sonh-library-card';libraryCard.setAttribute('aria-label','学习手记与文章统计');
+    decorateCardBorder(libraryCard);
     const aside=$('#aside-content');const author=$('.card-info',aside||document);
     if(aside){if(author)author.after(libraryCard);else aside.prepend(libraryCard);}else recent.after(libraryCard);
     const heading=document.createElement('div');heading.className='sonh-library-head';heading.setAttribute('aria-label','文章与时间筛选');
@@ -296,6 +431,7 @@
       chart.setAttribute('aria-label',chartMonths.map(month=>`${month}：${(!chosen||chosen===month)?posts.filter(post=>post.month===month).length:0}篇`).join('，'));
     }
     function renderPosts(){
+      if(borderObserver)$$('.sonh-bordered-card',list).forEach(card=>borderObserver.unobserve(card));
       const oldHeight=list.getBoundingClientRect().height;list.style.minHeight=`${Math.min(oldHeight,400)}px`;list.replaceChildren();
       currentPosts.slice(0,limit).forEach(post=>{
         const card=document.createElement('article');card.className='recent-post-item';
