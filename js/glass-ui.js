@@ -212,7 +212,7 @@
   dock.addEventListener('pointerleave',resetDock);dock.addEventListener('focusout',event=>{if(!dock.contains(event.relatedTarget))resetDock();});
 
   // Touch has no hover: move the glass highlight on activation before navigating.
-  const capsule=document.createElement('div');capsule.className='sonh-dock-capsule';capsule.setAttribute('aria-hidden','true');dock.prepend(capsule);
+  const capsule=document.createElement('div');capsule.className='sonh-dock-capsule';capsule.style.position='absolute';capsule.setAttribute('aria-hidden','true');dock.prepend(capsule);
   let capsuleTarget=$('[aria-current="page"]',dock),capsuleMotion=null,dockNavigation=0;
   function placeCapsule(target,animate=false){
     if(!target){capsuleMotion?.cancel();capsule.hidden=true;dock.classList.remove('sonh-dock-ready');dockItems.forEach(item=>item.classList.remove('is-dock-target'));return;}

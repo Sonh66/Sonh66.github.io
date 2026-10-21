@@ -156,7 +156,7 @@ button.sonh-button, .sonh-open-article { font: inherit; cursor: pointer; color: 
 .sonh-more { margin-top: 26px; text-align: center; }
 .sonh-empty { grid-column: 1/-1; padding: 50px; text-align: center; color: var(--muted); }
 /* Glass icon dock; text remains available to keyboard and assistive technology. */
-.sonh-dock { position: fixed; z-index: 101; bottom: max(20px,env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 8px; padding: 12px 16px; border-radius: 25px; border: 1px solid var(--glass-line); background: var(--glass); backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%); box-shadow: 0 15px 50px rgba(32,89,132,.2),inset 0 1px 0 rgba(255,255,255,.9); }
+.sonh-dock { position: fixed; z-index: 101; bottom: max(20px,env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 25px; border: 1px solid var(--glass-line); background: var(--glass); backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%); box-shadow: 0 15px 50px rgba(32,89,132,.2),inset 0 1px 0 rgba(255,255,255,.9); }
 .sonh-dock-item { position: relative; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 15px; color: var(--muted); border: 1px solid var(--glass-line); background: rgba(241,250,255,.6); transform: translateY(var(--dock-lift,0px)) scale(var(--dock-scale,1)); transition: transform .22s cubic-bezier(.2,.8,.3,1),color .2s; cursor: pointer; }
 .sonh-dock-item svg { width: 21px; height: 21px; }
 .sonh-dock-item[aria-current='page'] { color: var(--blue); background: rgba(178,224,252,.5); }
