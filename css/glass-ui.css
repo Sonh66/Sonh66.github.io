@@ -258,6 +258,16 @@ body.read-mode #post { border: 0; background: transparent; box-shadow: none; bac
 body.read-mode .sonh-dock { display: none; }
 body.read-mode .exit-readmode { background: #c4e7fc; color: #246b9d; }
 
+/* Wrap code, never its line-number gutter; avoid centering unequal-height cells. */
+#article-container figure.highlight td { vertical-align: top; }
+#article-container figure.highlight .gutter { width: 1%; }
+#article-container figure.highlight .gutter pre,
+#article-container figure.highlight .gutter .line {
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 /* A touch TOC is opt-in and lives above the dock, never over the page on load. */
 .sonh-toc-toggle { display: none; }
 @media (max-width:900px) {

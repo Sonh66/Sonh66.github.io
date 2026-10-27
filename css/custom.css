@@ -76,8 +76,8 @@
 }
 
 /* Make wrapped code readable even for long commands and URLs. */
-#article-container figure.highlight pre,
-#article-container figure.highlight code,
+#article-container figure.highlight .code pre,
+#article-container figure.highlight .code code,
 #article-container pre code {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
